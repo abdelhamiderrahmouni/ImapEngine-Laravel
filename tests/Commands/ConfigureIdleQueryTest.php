@@ -4,7 +4,7 @@ use DirectoryTree\ImapEngine\Laravel\Commands\ConfigureIdleQuery;
 use DirectoryTree\ImapEngine\MessageQueryInterface;
 use DirectoryTree\ImapEngine\Testing\FakeFolder;
 
-test('it does nothing when "with" is empty', function () {
+it('does nothing when "with" is empty', function () {
     $folder = new FakeFolder;
 
     $configure = new ConfigureIdleQuery;
@@ -14,7 +14,7 @@ test('it does nothing when "with" is empty', function () {
     expect($query)->toBeInstanceOf(MessageQueryInterface::class);
 });
 
-test('it configures query when "with" is present', function () {
+it('configures query when "with" is present', function () {
     $folder = new FakeFolder;
 
     $configure = new ConfigureIdleQuery([

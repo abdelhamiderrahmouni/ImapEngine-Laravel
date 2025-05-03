@@ -13,14 +13,14 @@ use InvalidArgumentException;
 
 use function Pest\Laravel\artisan;
 
-test('it throws exception when mailbox is not configured', function () {
+it('throws exception when mailbox is not configured', function () {
     artisan(WatchMailbox::class, ['mailbox' => 'invalid']);
 })->throws(
     InvalidArgumentException::class,
     'Mailbox [invalid] is not defined. Please check your IMAP configuration.'
 );
 
-test('it can watch mailbox', function () {
+it('can watch mailbox', function () {
     Config::set('imap.mailboxes.test', [
         'host' => 'localhost',
         'port' => 993,

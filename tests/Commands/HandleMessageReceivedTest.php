@@ -4,7 +4,7 @@ use DirectoryTree\ImapEngine\Laravel\Commands\HandleMessageReceived;
 use DirectoryTree\ImapEngine\Laravel\Commands\WatchMailbox;
 use DirectoryTree\ImapEngine\Testing\FakeMessage;
 
-test('it dispatches event', function () {
+it('dispatches event', function () {
     $command = mock(WatchMailbox::class);
 
     $command->shouldReceive('info')->once()->with(
