@@ -49,7 +49,7 @@ class WatchMailbox extends Command
                 $folder->idle(
                     new HandleMessageReceived($this),
                     new ConfigureIdleQuery($with),
-                    $this->option('timeout')
+                    $this->option('timeout'),
                 );
             } catch (Exception $e) {
                 if ($this->isMessageMissing($e)) {
