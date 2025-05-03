@@ -52,3 +52,18 @@ it('throws an exception for undefined mailboxes', function () {
     expect(fn () => $this->manager->mailbox('undefined'))
         ->toThrow(InvalidArgumentException::class, 'Mailbox [undefined] is not defined.');
 });
+
+it('registers and retrieves a new mailbox', function () {
+    $this->manager->register('custom', [
+        'host' => 'imap.custom.com',
+        'port' => 993,
+        'username' => 'user@custom.com',
+        'password' => 'password',
+        'encryption' => 'ssl',
+    ]);
+
+    $mailbox = $this->manager->mailbox('custom');
+
+    expect($mailbox)->toBeInstanceOf(MailboxInterface::class);
+    expect($mailbox)->toBeInstanceOf(Mailbox::class);
+});
