@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/directorytree/imapengine-laravel/blob/master/art/logo.svg" width="300">
+<img src="https://github.com/directorytree/imapengine/blob/master/art/logo.svg" width="300">
 </p>
 
 <p align="center">Working with IMAP doesn't need to be hard.</p>
