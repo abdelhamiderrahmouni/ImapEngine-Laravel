@@ -2,6 +2,8 @@
 
 namespace DirectoryTree\ImapEngine\Laravel;
 
+use DirectoryTree\ImapEngine\Laravel\Support\Loop;
+use DirectoryTree\ImapEngine\Laravel\Support\LoopInterface;
 use Illuminate\Support\ServiceProvider;
 
 class ImapServiceProvider extends ServiceProvider
@@ -12,8 +14,10 @@ class ImapServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ImapManager::class, function () {
-            return new ImapManager(config('imap'));
+            return new ImapManager(config('imap', []));
         });
+
+        $this->app->bind(LoopInterface::class, Loop::class);
     }
 
     /**

@@ -2,13 +2,13 @@
 
 namespace DirectoryTree\ImapEngine\Laravel\Commands;
 
-use DirectoryTree\ImapEngine\Laravel\Events\MessageReceived;
+use DirectoryTree\ImapEngine\FolderInterface;
 use DirectoryTree\ImapEngine\Laravel\Facades\Imap;
+use DirectoryTree\ImapEngine\Laravel\Support\LoopInterface;
+use DirectoryTree\ImapEngine\MailboxInterface;
 use DirectoryTree\ImapEngine\Message;
-use DirectoryTree\ImapEngine\MessageQuery;
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 class WatchMailbox extends Command
@@ -18,7 +18,7 @@ class WatchMailbox extends Command
      *
      * @var string
      */
-    protected $signature = 'imap:watch {mailbox} {folder?} {--with=} {--timeout=30} {--debug=false}';
+    protected $signature = 'imap:watch {mailbox} {folder?} {--with=} {--timeout=30} {--attempts=5} {--debug=false}';
 
     /**
      * The console command description.
@@ -30,55 +30,39 @@ class WatchMailbox extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): void
+    public function handle(LoopInterface $loop): void
     {
         $mailbox = Imap::mailbox($name = $this->argument('mailbox'));
 
         $with = explode(',', $this->option('with'));
 
-        $this->info("Watching mailbox $name...");
+        $this->info("Watching mailbox [$name]...");
 
         $attempts = 0;
 
-        while (true) {
+        $loop->run(function () use ($mailbox, $with, &$attempts) {
             try {
-                $inbox = ($folder = $this->argument('folder'))
-                    ? $mailbox->folders()->findOrFail($folder)
-                    : $mailbox->inbox();
+                $folder = $this->folder($mailbox);
 
                 $attempts = 0;
 
-                $inbox->idle(function (Message $message) {
-                    $this->info("Message received: [{$message->uid()}]");
-
-                    Event::dispatch(new MessageReceived($message));
-                }, function (MessageQuery $query) use ($with) {
-                    if (in_array('flags', $with)) {
-                        $query->withFlags();
-                    }
-
-                    if (in_array('body', $with)) {
-                        $query->withBody();
-                    }
-
-                    if (in_array('headers', $with)) {
-                        $query->withHeaders();
-                    }
-
-                    return $query;
-                }, $this->option('timeout'));
+                $folder->idle(
+                    new HandleMessageReceived($this),
+                    new ConfigureIdleQuery($with),
+                    $this->option('timeout')
+                );
             } catch (Exception $e) {
                 if ($this->isMessageMissing($e)) {
-                    continue;
+                    return;
                 }
 
                 if ($this->isDisconnection($e)) {
                     sleep(2);
 
-                    continue;
+                    return;
                 }
 
-                if ($attempts >= 5) {
+                if ($attempts >= $this->option('attempts')) {
                     $this->info("Exception: {$e->getMessage()}");
 
                     throw $e;
@@ -86,7 +70,17 @@ class WatchMailbox extends Command
 
                 $attempts++;
             }
-        }
+        });
+    }
+
+    /**
+     * Get the mailbox folder to idle.
+     */
+    protected function folder(MailboxInterface $mailbox): FolderInterface
+    {
+        return ($folder = $this->argument('folder'))
+             ? $mailbox->folders()->findOrFail($folder)
+             : $mailbox->inbox();
     }
 
     /**

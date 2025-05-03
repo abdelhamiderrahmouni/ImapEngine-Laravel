@@ -1,0 +1,39 @@
+<?php
+
+namespace DirectoryTree\ImapEngine\Laravel\Tests;
+
+use DirectoryTree\ImapEngine\Laravel\Commands\WatchMailbox;
+use DirectoryTree\ImapEngine\Laravel\Facades\Imap;
+use DirectoryTree\ImapEngine\Laravel\Support\LoopFake;
+use DirectoryTree\ImapEngine\Laravel\Support\LoopInterface;
+use DirectoryTree\ImapEngine\Testing\FakeFolder;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
+use InvalidArgumentException;
+
+use function Pest\Laravel\artisan;
+
+test('it throws exception when mailbox is not configured', function () {
+    artisan(WatchMailbox::class, ['mailbox' => 'invalid']);
+})->throws(
+    InvalidArgumentException::class,
+    'Mailbox [invalid] is not defined. Please check your IMAP configuration.'
+);
+
+test('it can watch mailbox', function () {
+    Config::set('imap.mailboxes.test', [
+        'host' => 'localhost',
+        'port' => 993,
+        'encryption' => 'ssl',
+        'username' => '',
+        'password' => '',
+    ]);
+
+    Imap::fake('test', folders: [
+        new FakeFolder('inbox'),
+    ]);
+
+    App::bind(LoopInterface::class, LoopFake::class);
+
+    artisan(WatchMailbox::class, ['mailbox' => 'test'])->assertSuccessful();
+});

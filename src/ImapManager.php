@@ -35,13 +35,31 @@ class ImapManager
             return $this->mailboxes[$name];
         }
 
-        if (! array_key_exists($name, $this->config['mailboxes'])) {
+        if (! array_key_exists($name, $this->config['mailboxes'] ?? [])) {
             throw new InvalidArgumentException(
                 "Mailbox [{$name}] is not defined. Please check your IMAP configuration."
             );
         }
 
-        return $this->mailboxes[$name] = new Mailbox($this->config['mailboxes'][$name]);
+        return $this->mailboxes[$name] = $this->build($this->config['mailboxes'][$name]);
+    }
+
+    /**
+     * Register a mailbox instance.
+     */
+    public function register(string $name, array $config): static
+    {
+        $this->mailboxes[$name] = $this->build($config);
+
+        return $this;
+    }
+
+    /**
+     * Build an on-demand mailbox instance.
+     */
+    public function build(array $config): MailboxInterface
+    {
+        return new Mailbox($config);
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace DirectoryTree\ImapEngine\Laravel\Events;
 
-use DirectoryTree\ImapEngine\Message;
+use DirectoryTree\ImapEngine\MessageInterface;
 
 class MessageReceived
 {
@@ -10,6 +10,6 @@ class MessageReceived
      * Create a new event instance.
      */
     public function __construct(
-        public Message $message
+        public MessageInterface $message
     ) {}
 }
