@@ -14,5 +14,5 @@
 </p>
 
 <p align="center">
-  <a href="https://imapengine.com">View Documentation</a>
+  <a href="https://imapengine.com/docs/laravel/introduction">View Documentation</a>
 </p>
