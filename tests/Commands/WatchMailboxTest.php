@@ -3,12 +3,15 @@
 namespace DirectoryTree\ImapEngine\Laravel\Tests;
 
 use DirectoryTree\ImapEngine\Laravel\Commands\WatchMailbox;
+use DirectoryTree\ImapEngine\Laravel\Events\MessageReceived;
 use DirectoryTree\ImapEngine\Laravel\Facades\Imap;
 use DirectoryTree\ImapEngine\Laravel\Support\LoopFake;
 use DirectoryTree\ImapEngine\Laravel\Support\LoopInterface;
 use DirectoryTree\ImapEngine\Testing\FakeFolder;
+use DirectoryTree\ImapEngine\Testing\FakeMessage;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
 
 use function Pest\Laravel\artisan;
@@ -30,10 +33,18 @@ it('can watch mailbox', function () {
     ]);
 
     Imap::fake('test', folders: [
-        new FakeFolder('inbox'),
+        new FakeFolder('inbox', messages: [
+            $message = new FakeMessage(uid: 1),
+        ]),
     ]);
 
     App::bind(LoopInterface::class, LoopFake::class);
 
+    Event::fake();
+
     artisan(WatchMailbox::class, ['mailbox' => 'test'])->assertSuccessful();
+
+    Event::assertDispatched(
+        fn (MessageReceived $event) => $event->message->is($message)
+    );
 });
