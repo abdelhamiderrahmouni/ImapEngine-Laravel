@@ -15,7 +15,7 @@ class HandleMessageReceived
      */
     public function __construct(
         protected WatchMailbox $command,
-        protected int &$attempts,
+        protected int &$attempts = 0,
         protected ?Carbon &$lastReceivedAt = null,
     ) {}
 

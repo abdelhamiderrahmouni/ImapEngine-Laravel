@@ -67,7 +67,9 @@ class WatchMailbox extends Command
                 if ($attempts >= $this->option('attempts')) {
                     $this->info("Exception: {$e->getMessage()}");
 
-                    Event::dispatch(new MailboxWatchAttemptsExceeded($name, $e, $lastReceivedAt));
+                    Event::dispatch(
+                        new MailboxWatchAttemptsExceeded($name, $attempts, $e, $lastReceivedAt)
+                    );
 
                     throw $e;
                 }

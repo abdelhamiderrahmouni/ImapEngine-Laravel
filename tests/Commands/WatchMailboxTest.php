@@ -17,7 +17,6 @@ use InvalidArgumentException;
 use RuntimeException;
 
 use function Pest\Laravel\artisan;
-use function Pest\Laravel\freezeTime;
 
 it('throws exception when mailbox is not configured', function () {
     artisan(WatchMailbox::class, ['mailbox' => 'invalid']);
@@ -53,8 +52,6 @@ it('can watch mailbox', function () {
 });
 
 it('dispatches event when failure attempts have been reached', function () {
-    $datetime = freezeTime();
-
     Config::set('imap.mailboxes.test', [
         'host' => 'localhost',
         'port' => 993,
@@ -88,7 +85,8 @@ it('dispatches event when failure attempts have been reached', function () {
     }
 
     Event::assertDispatched(function (MailboxWatchAttemptsExceeded $event) {
-        return $event->mailbox === 'test'
+        return $event->attempts === 5
+            && $event->mailbox === 'test'
             && is_null($event->lastReceivedAt)
             && $event->exception->getMessage() === 'Simulated exception';
     });

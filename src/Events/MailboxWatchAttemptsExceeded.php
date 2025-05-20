@@ -12,6 +12,7 @@ class MailboxWatchAttemptsExceeded
      */
     public function __construct(
         public string $mailbox,
+        public int $attempts,
         public Exception $exception,
         public ?Carbon $lastReceivedAt = null,
     ) {}
