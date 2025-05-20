@@ -3,12 +3,14 @@
 namespace DirectoryTree\ImapEngine\Laravel\Commands;
 
 use DirectoryTree\ImapEngine\FolderInterface;
+use DirectoryTree\ImapEngine\Laravel\Events\MailboxWatchAttemptsExceeded;
 use DirectoryTree\ImapEngine\Laravel\Facades\Imap;
 use DirectoryTree\ImapEngine\Laravel\Support\LoopInterface;
 use DirectoryTree\ImapEngine\MailboxInterface;
 use DirectoryTree\ImapEngine\Message;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 class WatchMailbox extends Command
@@ -40,14 +42,14 @@ class WatchMailbox extends Command
 
         $attempts = 0;
 
-        $loop->run(function () use ($mailbox, $with, &$attempts) {
+        $lastReceivedAt = null;
+
+        $loop->run(function () use ($mailbox, $name, $with, &$attempts, &$lastReceivedAt) {
             try {
                 $folder = $this->folder($mailbox);
 
-                $attempts = 0;
-
                 $folder->idle(
-                    new HandleMessageReceived($this),
+                    new HandleMessageReceived($this, $attempts, $lastReceivedAt),
                     new ConfigureIdleQuery($with),
                     $this->option('timeout')
                 );
@@ -64,6 +66,10 @@ class WatchMailbox extends Command
 
                 if ($attempts >= $this->option('attempts')) {
                     $this->info("Exception: {$e->getMessage()}");
+
+                    Event::dispatch(
+                        new MailboxWatchAttemptsExceeded($name, $attempts, $e, $lastReceivedAt)
+                    );
 
                     throw $e;
                 }
