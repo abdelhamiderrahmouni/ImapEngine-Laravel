@@ -12,7 +12,9 @@ class HandleMessageReceived
      * Constructor.
      */
     public function __construct(
-        protected WatchMailbox $command
+        protected WatchMailbox $command,
+        protected int &$attempts,
+        protected ?int &$lastReceivedAt = null,
     ) {}
 
     /**
@@ -23,6 +25,10 @@ class HandleMessageReceived
         $this->command->info(
             "Message received: [{$message->uid()}]"
         );
+
+        $this->attempts = 0;
+
+        $this->lastReceivedAt = time();
 
         Event::dispatch(new MessageReceived($message));
     }
