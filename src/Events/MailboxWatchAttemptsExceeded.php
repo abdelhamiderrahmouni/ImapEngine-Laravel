@@ -3,6 +3,7 @@
 namespace DirectoryTree\ImapEngine\Laravel\Events;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Exception;
 
 class MailboxWatchAttemptsExceeded
@@ -14,6 +15,6 @@ class MailboxWatchAttemptsExceeded
         public string $mailbox,
         public int $attempts,
         public Exception $exception,
-        public ?Carbon $lastReceivedAt = null,
+        public null|Carbon|CarbonImmutable $lastReceivedAt = null,
     ) {}
 }

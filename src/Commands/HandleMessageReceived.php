@@ -2,6 +2,7 @@
 
 namespace DirectoryTree\ImapEngine\Laravel\Commands;
 
+use Carbon\CarbonImmutable;
 use DirectoryTree\ImapEngine\Laravel\Events\MessageReceived;
 use DirectoryTree\ImapEngine\MessageInterface;
 use Illuminate\Support\Carbon;
@@ -16,7 +17,7 @@ class HandleMessageReceived
     public function __construct(
         protected WatchMailbox $command,
         protected int &$attempts = 0,
-        protected ?Carbon &$lastReceivedAt = null,
+        protected null|Carbon|CarbonImmutable &$lastReceivedAt = null,
     ) {}
 
     /**
